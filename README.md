@@ -4,7 +4,7 @@ Programa desktop (Windows e macOS) que envia **certificados em PDF por email**, 
 
 ## Download
 
-Baixe na página de [Releases](https://github.com/oCatito/certifica/releases/latest). Não precisa instalar nada.
+Baixe na página de [Releases](https://github.com/oCatito/Certifica/releases/latest). Não precisa instalar nada.
 
 - **Windows:** `Certifica.exe`. É só abrir o arquivo.
 - **macOS (chip Apple, M1 ou mais novo):** `Certifica-macOS.zip`. Descompacte e arraste o `Certifica.app` para a pasta Aplicativos.

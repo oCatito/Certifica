@@ -21,7 +21,7 @@ def test_is_newer():
 def test_parse_release():
     data = {
         "tag_name": "v1.2.0",
-        "html_url": "https://github.com/oCatito/certifica/releases/tag/v1.2.0",
+        "html_url": "https://github.com/oCatito/Certifica/releases/tag/v1.2.0",
         "assets": [
             {"name": "Certifica.exe", "browser_download_url": "https://x/Certifica.exe"},
             {"name": "Certifica-macOS.zip", "browser_download_url": "https://x/Certifica-macOS.zip"},

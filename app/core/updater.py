@@ -30,7 +30,7 @@ from typing import Callable
 
 from app import APP_NAME, __version__
 
-REPO = "oCatito/certifica"
+REPO = "oCatito/Certifica"
 LATEST_API = f"https://api.github.com/repos/{REPO}/releases/latest"
 RELEASES_PAGE = f"https://github.com/{REPO}/releases/latest"
 TIMEOUT_SECONDS = 10
