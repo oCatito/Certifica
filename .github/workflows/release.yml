@@ -1,4 +1,4 @@
-# Testa, gera o Certifica.exe no Windows e publica um release com ele.
+# Testa, gera o Certifica.exe (Windows) e o Certifica.app (macOS) e publica um release com os dois.
 # Dispara ao enviar uma tag que comece com "v" (ex.: v1.0.0).
 name: Release
 
@@ -6,13 +6,30 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch: # permite rodar manualmente (gera o .exe sem criar release)
+  workflow_dispatch: # permite rodar manualmente (gera os arquivos sem criar release)
 
 permissions:
   contents: write
 
 jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir se a tag bate com a versão do app
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(sed -nE 's/^__version__ = "([^"]+)"/\1/p' app/__init__.py)
+          if [ "$tag" != "$version" ]; then
+            echo "::error::A tag v$tag não bate com __version__ = \"$version\" em app/__init__.py. Atualize a versão antes de criar a tag."
+            exit 1
+          fi
+          echo "Versão $version confere com a tag."
+
   windows:
+    needs: check-version
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,19 +37,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Conferir se a tag bate com a versão do app
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: pwsh
-        run: |
-          $tag = "${{ github.ref_name }}".TrimStart("v")
-          $match = Select-String -Path app/__init__.py -Pattern '__version__\s*=\s*"([^"]+)"'
-          $version = $match.Matches[0].Groups[1].Value
-          if ($tag -ne $version) {
-            Write-Error "A tag v$tag não bate com __version__ = `"$version`" em app/__init__.py. Atualize a versão antes de criar a tag."
-            exit 1
-          }
-          Write-Host "Versão $version confere com a tag."
 
       - name: Instalar dependências
         shell: cmd
@@ -49,15 +53,55 @@ jobs:
         shell: cmd
         run: build_windows.bat
 
-      - name: Guardar o .exe como artefato
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: Certifica-windows
           path: dist/Certifica.exe
 
+  macos:
+    needs: check-version
+    runs-on: macos-latest # chip Apple (M1 ou mais novo)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install --quiet --upgrade pip
+          .venv/bin/python -m pip install --quiet -r requirements-dev.txt
+
+      - name: Rodar os testes
+        run: .venv/bin/python -m pytest -q
+
+      - name: Gerar Certifica.app
+        run: ./build_mac.sh
+
+      - name: Compactar o .app
+        # ditto preserva links simbólicos, permissões e a assinatura ad hoc do app
+        run: ditto -c -k --keepParent dist/Certifica.app Certifica-macOS.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Certifica-macos
+          path: Certifica-macOS.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
       - name: Publicar release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/Certifica.exe
+          files: |
+            Certifica.exe
+            Certifica-macOS.zip
           generate_release_notes: true
