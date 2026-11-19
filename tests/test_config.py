@@ -73,7 +73,7 @@ def test_next_interval_fixed_and_random():
 
     from app.core.config import SendingConfig, format_seconds
 
-    fixed = SendingConfig(interval_seconds=2)
+    fixed = SendingConfig(random_interval=False, interval_seconds=2)
     assert fixed.next_interval() == 2 and fixed.average_interval == 2
 
     rnd = SendingConfig(random_interval=True, random_min_seconds=30, random_max_seconds=300)
@@ -95,3 +95,12 @@ def test_random_interval_round_trip():
     cfg.sending.random_max_seconds = 300
     save_config(cfg)
     assert load_config().sending == cfg.sending
+
+
+def test_default_interval_is_random_between_30s_and_1min():
+    from app.core.config import SendingConfig
+
+    cfg = SendingConfig()
+    assert cfg.random_interval is True
+    assert (cfg.random_min_seconds, cfg.random_max_seconds) == (30, 60)
+    assert all(30 <= cfg.next_interval() <= 60 for _ in range(50))

@@ -551,14 +551,14 @@ class SettingsPage(ctk.CTkFrame):
             self.random_box.pack(side="left")
             self._set_hint(self.interval_hint,
                            "A cada envio, o programa sorteia uma pausa entre o mínimo e o máximo. "
-                           "Ex.: entre 30 segundos e 5 minutos. Pausas variadas parecem envios feitos à mão "
+                           "Padrão: entre 30 segundos e 1 minuto. Pausas variadas parecem envios feitos à mão "
                            "e reduzem o risco de bloqueio, mas o envio total demora mais.")
         else:
             self.random_box.pack_forget()
             self.fixed_box.pack(side="left")
             self._set_hint(self.interval_hint,
                            "A mesma pausa entre todos os emails ajuda a evitar bloqueio por spam. "
-                           "Recomendado: 2 segundos.")
+                           "Recomendado: 5 segundos.")
 
     def _daily_limit_text(self) -> str:
         limit = SMTP_PROVIDERS[self.provider_key].daily_limit_hint

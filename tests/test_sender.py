@@ -63,6 +63,7 @@ def setup(tmp_path, cert_folder, smtp_server):
     cfg.sender.display_name = "Equipe Eventos"
     cfg.sender.reply_to = "contato@empresa.com"
     cfg.message.subject = "Certificado - {curso}"
+    cfg.sending.random_interval = False
     cfg.sending.interval_seconds = 0
     mapping = ColumnMapping(name="Nome", email="Email", file="Arquivo")
     sheet = read_sheet(sheet_path)

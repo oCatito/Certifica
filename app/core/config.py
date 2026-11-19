@@ -163,10 +163,10 @@ class MessageConfig:
 
 @dataclass
 class SendingConfig:
-    interval_seconds: float = 2.0
-    random_interval: bool = False
+    interval_seconds: float = 5.0
+    random_interval: bool = True
     random_min_seconds: float = 30.0
-    random_max_seconds: float = 300.0
+    random_max_seconds: float = 60.0
     daily_limit: int = 450
     max_attempts: int = 2
 

@@ -27,7 +27,7 @@ O menu inicial tem três opções independentes (use só a que precisar, em qual
 - **Servidor:** escolha o provedor (Gmail, Outlook, Yahoo, SendGrid etc.) ou "Outro servidor" (SMTP), informe usuário e senha e clique em **Testar conexão**. A senha fica no cofre do sistema, nunca em arquivo.
 - **Remetente:** nome exibido e endereço de resposta.
 - **Mensagem:** assunto e corpo (texto ou HTML), com prévia.
-- **Envio:** intervalo entre emails (padrão 2 s), limite diário e tentativas.
+- **Envio:** intervalo entre emails (padrão aleatório, entre 30 s e 1 min), limite diário e tentativas.
 
 > **Gmail:** exige uma **senha de app**. Ative a verificação em duas etapas e crie a senha em Conta Google → Segurança → Senhas de app. No Workspace, o administrador precisa liberar essa opção.
 
