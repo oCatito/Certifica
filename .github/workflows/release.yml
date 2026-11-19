@@ -1,0 +1,63 @@
+# Testa, gera o Certifica.exe no Windows e publica um release com ele.
+# Dispara ao enviar uma tag que comece com "v" (ex.: v1.0.0).
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch: # permite rodar manualmente (gera o .exe sem criar release)
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Conferir se a tag bate com a versão do app
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}".TrimStart("v")
+          $match = Select-String -Path app/__init__.py -Pattern '__version__\s*=\s*"([^"]+)"'
+          $version = $match.Matches[0].Groups[1].Value
+          if ($tag -ne $version) {
+            Write-Error "A tag v$tag não bate com __version__ = `"$version`" em app/__init__.py. Atualize a versão antes de criar a tag."
+            exit 1
+          }
+          Write-Host "Versão $version confere com a tag."
+
+      - name: Instalar dependências
+        shell: cmd
+        run: |
+          python -m venv .venv
+          .venv\Scripts\python -m pip install --quiet --upgrade pip
+          .venv\Scripts\python -m pip install --quiet -r requirements-dev.txt
+
+      - name: Rodar os testes
+        shell: cmd
+        run: .venv\Scripts\python -m pytest -q
+
+      - name: Gerar Certifica.exe
+        shell: cmd
+        run: build_windows.bat
+
+      - name: Guardar o .exe como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: Certifica-windows
+          path: dist/Certifica.exe
+
+      - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Certifica.exe
+          generate_release_notes: true

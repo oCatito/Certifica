@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.pyc
+build/
+dist/
+*.spec
+.pytest_cache/
+.DS_Store
+.dev.lock
+.claude/
+
+# Editores e sistema
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# Ferramentas
+*.log
+.coverage
+htmlcov/
+*.egg-info/

@@ -1,0 +1,11 @@
+# Normaliza finais de linha no repositório.
+* text=auto
+
+# Scripts do Windows precisam de CRLF; os do macOS/Linux, de LF.
+*.bat text eol=crlf
+*.sh  text eol=lf
+
+# Binários
+*.png  binary
+*.ico  binary
+*.icns binary
