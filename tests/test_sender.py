@@ -38,7 +38,9 @@ def smtp_server():
         s.bind(("127.0.0.1", 0))
         port = s.getsockname()[1]
     handler = Handler()
-    controller = Controller(handler, hostname="127.0.0.1", port=port)
+    # server_hostname fixo: sem ele o aiosmtpd chama socket.getfqdn(), que é muito lento nas
+    # máquinas macOS do GitHub Actions e estoura o tempo de inicialização do servidor.
+    controller = Controller(handler, hostname="127.0.0.1", port=port, server_hostname="localhost")
     controller.start()
     yield handler, port
     controller.stop()
