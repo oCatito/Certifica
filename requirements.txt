@@ -4,3 +4,4 @@ keyring>=25.0
 platformdirs>=4.0
 tkinterdnd2>=0.4.2
 pillow>=10.0
+certifi>=2024.0

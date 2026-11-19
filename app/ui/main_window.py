@@ -14,7 +14,7 @@ from app.core.config import get_password, load_config
 from app.paths import resource_path
 from app.ui import icons
 from app.ui.macos import set_app_name
-from app.ui.widgets import MUTED_TEXT, OK_COLOR, font
+from app.ui.widgets import MUTED_TEXT, OK_COLOR, font, run_in_background
 
 TEAL = ("#00A3A6", "#00CBCC")  # cor da marca (ícone do app)
 _POINTER = "pointinghand" if sys.platform == "darwin" else "hand2"
@@ -232,8 +232,44 @@ class MainWindow(ctk.CTk, _DnDBase):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.page: ctk.CTkFrame | None = None
+        self.update_toast = None
         self.show_home()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.after(1500, self._check_for_update)
+
+    # --- atualização ---
+    def _check_for_update(self) -> None:
+        """Consulta o GitHub em segundo plano. Sem internet ou com erro, não mostra nada."""
+        from app.core import updater
+
+        def work():
+            updater.cleanup_old_versions()
+            return updater.check_for_update()
+
+        def done(release, error) -> None:
+            if error is None and release is not None and self.winfo_exists():
+                from app.ui.update_toast import UpdateToast
+
+                self.update_toast = UpdateToast(self, release, can_start=self._can_update,
+                                                on_installed=self._restart_after_update)
+                self.update_toast.show()
+
+        run_in_background(self, work, done)
+
+    def _can_update(self) -> bool:
+        if getattr(self.page, "is_sending", False):
+            messagebox.showinfo("Envio em andamento",
+                                "Espere o envio terminar (ou cancele) antes de atualizar.", parent=self)
+            return False
+        return True
+
+    def _restart_after_update(self) -> None:
+        from app.core import updater
+
+        try:
+            updater.restart()
+        finally:
+            self.destroy()
 
     def _enable_dnd(self) -> bool:
         """Ativa o arrastar e soltar de arquivos (tkdnd). Se falhar, só o clique fica disponível."""
@@ -260,6 +296,8 @@ class MainWindow(ctk.CTk, _DnDBase):
             self.page.destroy()
         self.page = page
         page.grid(row=0, column=0, sticky="nsew")
+        if self.update_toast is not None and self.update_toast.winfo_exists():
+            self.update_toast.lift()  # a página nova foi criada depois e ficaria por cima do aviso
 
     def show_home(self) -> None:
         self._show(HomePage(self))

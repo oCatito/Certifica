@@ -9,6 +9,10 @@ Baixe na página de [Releases](https://github.com/oCatito/certifica/releases/lat
 - **Windows:** `Certifica.exe`. É só abrir o arquivo.
 - **macOS (chip Apple, M1 ou mais novo):** `Certifica-macOS.zip`. Descompacte e arraste o `Certifica.app` para a pasta Aplicativos.
 
+## Atualizações
+
+Ao abrir, o programa verifica se há uma versão nova nos Releases. Se houver, aparece um aviso no canto inferior direito: clique em **Atualizar agora** e ele baixa a nova versão, substitui a atual e abre de novo. Se não puder se atualizar sozinho (por exemplo, sem permissão na pasta ou aberto direto do `.zip`), o botão abre a página de download.
+
 ## Como usar
 
 O menu inicial tem três opções independentes (use só a que precisar, em qualquer ordem). A engrenagem **⚙** abre as configurações.
