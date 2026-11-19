@@ -12,7 +12,7 @@ from app.core.campaign import RESULT_FAILED, RESULT_PENDING, RESULT_SENT, Campai
 from app.core.config import MODE_HTML, SECURITY_NONE, AppConfig
 from app.core.mailer import send_test
 from app.core.matcher import ColumnMapping, Status, check_recipients
-from app.core.sender import FinishedEvent, SendJob
+from app.core.sender import FinishedEvent, SendJob, WaitEvent
 from app.core.spreadsheet import read_sheet
 
 
@@ -195,3 +195,15 @@ def test_accented_names_headers_and_attachment(tmp_path, smtp_server):
     assert got["To"].addresses[0].display_name == "João Conceição"
     assert got["From"].addresses[0].display_name == "Coordenação Pedagógica"
     assert "Olá, João! Curso: Gestão & Inovação" in got.get_body(("plain",)).get_content()
+
+
+def test_wait_event_between_sends(setup):
+    """Entre um envio e outro, a interface recebe quanto tempo vai durar a pausa (para o timer)."""
+    handler, cfg, sheet, mapping, folder, campaign, recs = setup
+    cfg.sending.interval_seconds = 0.01
+    events = queue.Queue()
+    job = SendJob(cfg, None, recs, campaign, DailyCounter(cfg.smtp.username), events)
+    job.start()
+    job.join(timeout=30)
+    waits = [e for e in list(events.queue) if isinstance(e, WaitEvent)]
+    assert [w.seconds for w in waits] == [0.01, 0.01]  # 3 emails, 2 pausas: nenhuma depois do último

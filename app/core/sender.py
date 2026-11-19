@@ -43,6 +43,13 @@ class ProgressEvent:
 
 
 @dataclass
+class WaitEvent:
+    """Pausa entre um envio e o próximo: a interface mostra um timer com estes segundos."""
+
+    seconds: float
+
+
+@dataclass
 class PausedEvent:
     paused: bool
 
@@ -188,6 +195,7 @@ class SendJob(threading.Thread):
                     pause = self.cfg.sending.next_interval()
                     if self.cfg.sending.random_interval:
                         self._log(f"⏱ Próximo envio em {format_seconds(pause)} (intervalo aleatório).")
+                    self.events.put(WaitEvent(pause))
                     self._wait(pause)
         finally:
             self.client.close()

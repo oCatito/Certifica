@@ -16,7 +16,7 @@ from app.core.campaign import RESULT_FAILED, RESULT_PENDING, RESULT_SENT, Campai
 from app.core.config import MODE_HTML, AppConfig, get_password
 from app.core.mailer import recipient_variables, render_for, send_test
 from app.core.matcher import ColumnMapping, Recipient, Status, check_recipients
-from app.core.sender import FinishedEvent, LogEvent, PausedEvent, ProgressEvent, SendJob
+from app.core.sender import FinishedEvent, LogEvent, PausedEvent, ProgressEvent, SendJob, WaitEvent
 from app.core.spreadsheet import Sheet, SpreadsheetError, read_sheet, suggest_columns
 from app.core.templates import unknown_variables
 from app.core.text import variable_key
@@ -28,6 +28,7 @@ from app.ui.widgets import (
     OK_COLOR,
     WARN_COLOR,
     Card,
+    CountdownRing,
     LogBox,
     Table,
     font,
@@ -466,8 +467,11 @@ class SendWizard(ctk.CTkFrame):
         self.progress_label.grid(row=2, column=0, sticky="w")
         self.quota_label = ctk.CTkLabel(body, text="", anchor="w", text_color=MUTED_TEXT, font=font(12))
         self.quota_label.grid(row=3, column=0, sticky="w", pady=(0, 8))
+        # Timer da pausa até o próximo envio (fica vazio enquanto envia)
+        self.wait_ring = CountdownRing(body, size=120, thickness=9, caption="próximo envio")
+        self.wait_ring.grid(row=0, column=1, rowspan=4, sticky="ne", padx=(16, 0))
         self.log = LogBox(body)
-        self.log.grid(row=4, column=0, sticky="nsew")
+        self.log.grid(row=4, column=0, columnspan=2, sticky="nsew", pady=(8, 0))
 
         self.pause_btn = secondary_button(self.footer, text="⏸ Pausar", width=130, command=self._toggle_pause)
         self.pause_btn.pack(side="left")
@@ -509,6 +513,9 @@ class SendWizard(ctk.CTkFrame):
                              f"{event.failed} falhas")
                     self.quota_label.configure(
                         text=f"Limite diário da conta: {event.quota_used} de {event.quota_limit} nas últimas 24h")
+                elif isinstance(event, WaitEvent):
+                    if event.seconds >= 1:
+                        self.wait_ring.start(event.seconds)
                 elif isinstance(event, PausedEvent):
                     self.send_status.configure(text="Pausado" if event.paused else "Enviando…")
                     self.pause_btn.configure(text="▶ Continuar" if event.paused else "⏸ Pausar")
