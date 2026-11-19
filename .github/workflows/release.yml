@@ -31,6 +31,7 @@ jobs:
   windows:
     needs: check-version
     runs-on: windows-latest
+    timeout-minutes: 20 # se algo travar, falha em vez de esperar 6 horas
     steps:
       - uses: actions/checkout@v4
 
@@ -46,6 +47,7 @@ jobs:
           .venv\Scripts\python -m pip install --quiet -r requirements-dev.txt
 
       - name: Rodar os testes
+        timeout-minutes: 5
         shell: cmd
         run: .venv\Scripts\python -m pytest -q
 
@@ -61,6 +63,7 @@ jobs:
   macos:
     needs: check-version
     runs-on: macos-latest # chip Apple (M1 ou mais novo)
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -75,6 +78,7 @@ jobs:
           .venv/bin/python -m pip install --quiet -r requirements-dev.txt
 
       - name: Rodar os testes
+        timeout-minutes: 5
         run: .venv/bin/python -m pytest -q
 
       - name: Gerar Certifica.app

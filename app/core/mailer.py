@@ -17,6 +17,19 @@ from app.core.text import nfc
 TIMEOUT_SECONDS = 30
 
 
+def local_hostname() -> str:
+    """Nome enviado no EHLO, sem consultar o DNS.
+
+    O padrão do smtplib é socket.getfqdn(), que faz uma busca reversa no DNS e pode levar
+    dezenas de segundos em alguns Macs e redes, atrasando cada conexão.
+    """
+    try:
+        name = socket.gethostname().strip()
+    except OSError:
+        name = ""
+    return name if name.isascii() and "." in name else "localhost"
+
+
 class RateLimitError(Exception):
     """O servidor recusou por excesso de envios."""
 
@@ -77,10 +90,13 @@ class SmtpClient:
         self.close()
         host, port, security = self.cfg.smtp.host.strip(), int(self.cfg.smtp.port), self.cfg.smtp.security
         context = ssl.create_default_context()
+        ehlo_name = local_hostname()
         if security == SECURITY_SSL:
-            conn: smtplib.SMTP = smtplib.SMTP_SSL(host, port, timeout=TIMEOUT_SECONDS, context=context)
+            conn: smtplib.SMTP = smtplib.SMTP_SSL(
+                host, port, local_hostname=ehlo_name, timeout=TIMEOUT_SECONDS, context=context
+            )
         else:
-            conn = smtplib.SMTP(host, port, timeout=TIMEOUT_SECONDS)
+            conn = smtplib.SMTP(host, port, local_hostname=ehlo_name, timeout=TIMEOUT_SECONDS)
             conn.ehlo()
             if security != SECURITY_NONE:
                 conn.starttls(context=context)
